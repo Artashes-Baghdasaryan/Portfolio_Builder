@@ -23,6 +23,14 @@ interface Section {
   };
 }
 
+interface QuickStat {
+  icon: string;
+  text: string;
+  text_native: string;
+  color: string;
+  order: number;
+}
+
 interface PortfolioContent {
   id: string;
   image_url: string;
@@ -57,7 +65,32 @@ interface PortfolioContent {
   contact_title_native: string | null;
   contact_text: string;
   contact_text_native: string | null;
+  quick_stats: QuickStat[];
+  quick_stats_title: string;
+  quick_stats_title_native: string | null;
 }
+
+const iconComponents: { [key: string]: React.ComponentType<any> } = {
+  Code,
+  Server,
+  BookOpen,
+  Briefcase,
+  Award,
+  GraduationCap,
+  Globe,
+  FileText
+};
+
+const colorClasses: { [key: string]: string } = {
+  blue: 'bg-blue-50 text-blue-600',
+  green: 'bg-green-50 text-green-600',
+  purple: 'bg-purple-50 text-purple-600',
+  orange: 'bg-orange-50 text-orange-600',
+  red: 'bg-red-50 text-red-600',
+  indigo: 'bg-indigo-50 text-indigo-600',
+  pink: 'bg-pink-50 text-pink-600',
+  yellow: 'bg-yellow-50 text-yellow-600'
+};
 
 export default function Portfolio() {
   const [featuredSections, setFeaturedSections] = useState<Section[]>([]);
@@ -123,6 +156,10 @@ export default function Portfolio() {
 
   const getBio = (item: { bio: string; bio_native: string | null }) => {
     return language === 'native' && item.bio_native ? item.bio_native : item.bio;
+  };
+
+  const getQuickStatText = (stat: QuickStat) => {
+    return language === 'native' ? stat.text_native : stat.text;
   };
 
   if (!content) {
@@ -274,33 +311,29 @@ export default function Portfolio() {
             <div className="w-full bg-gradient-to-br from-white to-blue-50 rounded-xl p-6 shadow-md border border-blue-100">
               <h3 className="font-semibold text-gray-900 mb-6 flex items-center">
                 <Award className="h-5 w-5 text-blue-600 mr-2" />
-                <span>Quick Stats</span>
+                <span>
+                  {language === 'native' ? content.quick_stats_title_native : content.quick_stats_title}
+                </span>
               </h3>
               <div className="space-y-4">
-                <div className="flex items-center gap-3 p-3 bg-white rounded-lg shadow-sm border border-blue-50 transition-transform hover:translate-x-1">
-                  <div className="p-2 bg-blue-50 rounded-lg">
-                    <Code className="h-5 w-5 text-blue-600" />
-                  </div>
-                  <span className="text-gray-700 font-medium">AI Expert</span>
-                </div>
-                <div className="flex items-center gap-3 p-3 bg-white rounded-lg shadow-sm border border-green-50 transition-transform hover:translate-x-1">
-                  <div className="p-2 bg-green-50 rounded-lg">
-                    <Server className="h-5 w-5 text-green-600" />
-                  </div>
-                  <span className="text-gray-700 font-medium">Backend Developer</span>
-                </div>
-                <div className="flex items-center gap-3 p-3 bg-white rounded-lg shadow-sm border border-purple-50 transition-transform hover:translate-x-1">
-                  <div className="p-2 bg-purple-50 rounded-lg">
-                    <BookOpen className="h-5 w-5 text-purple-600" />
-                  </div>
-                  <span className="text-gray-700 font-medium">Speaker and lecturer</span>
-                </div>
-                <div className="flex items-center gap-3 p-3 bg-white rounded-lg shadow-sm border border-orange-50 transition-transform hover:translate-x-1">
-                  <div className="p-2 bg-orange-50 rounded-lg">
-                    <Briefcase className="h-5 w-5 text-orange-600" />
-                  </div>
-                  <span className="text-gray-700 font-medium">{content.years_of_experience}+ Years Experience</span>
-                </div>
+                {content.quick_stats.map((stat, index) => {
+                  const IconComponent = iconComponents[stat.icon] || Award;
+                  const colorClass = colorClasses[stat.color] || 'bg-blue-50 text-blue-600';
+                  
+                  return (
+                    <div key={index} className="flex items-center gap-3 p-3 bg-white rounded-lg shadow-sm border border-blue-50 transition-transform hover:translate-x-1">
+                      <div className={`p-2 ${colorClass} rounded-lg`}>
+                        <IconComponent className="h-5 w-5" />
+                      </div>
+                      <span className="text-gray-700 font-medium">
+                        {getQuickStatText(stat)}
+                        {stat.text.toLowerCase().includes('experience') && content.years_of_experience 
+                          ? `${content.years_of_experience}+ ` 
+                          : ''}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>
