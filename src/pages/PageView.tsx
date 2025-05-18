@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
+import Link2 from '@tiptap/extension-link';
 import { supabase } from '../lib/supabase';
 import { ArrowLeft } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
@@ -60,10 +61,14 @@ const ViewImage = Image.extend({
 const parseContent = (content: string | null): any => {
   if (!content) return null;
   
+  // If content is already an object, return it
+  if (typeof content === 'object') return content;
+  
   try {
+    // Try to parse as JSON
     return JSON.parse(content);
   } catch (err) {
-    // If parsing fails, create a simple paragraph with the text content
+    // If parsing fails, create a proper document structure with the raw content
     return {
       type: 'doc',
       content: [
@@ -94,6 +99,14 @@ const createViewEditor = () => {
           class: 'rounded-lg',
         },
       }),
+      Link2.configure({
+        openOnClick: true,
+        HTMLAttributes: {
+          class: 'text-blue-600 hover:text-blue-800 underline',
+          target: '_blank',
+          rel: 'noopener noreferrer',
+        },
+      }),
     ],
     content: {},
     editable: false,
@@ -121,11 +134,10 @@ export default function PageView() {
           ? currentSection.content_native
           : currentSection.content;
         
-        const contentToSet = typeof content === 'string'
-          ? JSON.parse(content)
-          : content;
-        
-        mainEditor.commands.setContent(contentToSet);
+        const contentToSet = parseContent(content);
+        if (contentToSet) {
+          mainEditor.commands.setContent(contentToSet);
+        }
       } catch (err) {
         console.error('Error setting viewer content:', err);
       }
@@ -167,7 +179,6 @@ export default function PageView() {
     }
   }, [page?.id, sectionSlug]);
 
-  // Add effect to update section description when language changes
   useEffect(() => {
     if (currentSection && sectionDescriptionEditor) {
       const description = language === 'native' && currentSection.description_native
