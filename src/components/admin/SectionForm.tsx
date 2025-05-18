@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
+import Link from '@tiptap/extension-link';
 import { supabase } from '../../lib/supabase';
 import slugify from 'slugify';
 import {
@@ -25,6 +26,7 @@ import {
   AlignRight,
   Upload,
   X,
+  Link as LinkIcon,
 } from 'lucide-react';
 
 interface Section {
@@ -80,6 +82,22 @@ const ImageResizeButton: React.FC<{
   </button>
 );
 
+const setLink = (editor: any) => {
+  const previousUrl = editor.getAttributes('link').href;
+  const url = window.prompt('URL', previousUrl);
+
+  if (url === null) {
+    return;
+  }
+
+  if (url === '') {
+    editor.chain().focus().extendMarkRange('link').unsetLink().run();
+    return;
+  }
+
+  editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
+};
+
 export default function SectionForm() {
   const { pageId, sectionId } = useParams();
   const navigate = useNavigate();
@@ -114,6 +132,14 @@ export default function SectionForm() {
       Image.configure({
         HTMLAttributes: {
           class: 'rounded-lg transition-all duration-200',
+        },
+      }),
+      Link.configure({
+        openOnClick: false,
+        HTMLAttributes: {
+          class: 'text-blue-600 hover:text-blue-800 underline',
+          target: '_blank',
+          rel: 'noopener noreferrer',
         },
       }),
     ],
@@ -164,6 +190,14 @@ export default function SectionForm() {
       Image.configure({
         HTMLAttributes: {
           class: 'rounded-lg transition-all duration-200',
+        },
+      }),
+      Link.configure({
+        openOnClick: false,
+        HTMLAttributes: {
+          class: 'text-blue-600 hover:text-blue-800 underline',
+          target: '_blank',
+          rel: 'noopener noreferrer',
         },
       }),
     ],
@@ -633,6 +667,13 @@ export default function SectionForm() {
               >
                 <Italic className="h-4 w-4" />
               </ToolbarButton>
+              <ToolbarButton
+                onClick={() => setLink(editor)}
+                isActive={editor?.isActive('link')}
+                title="Add Link"
+              >
+                <LinkIcon className="h-4 w-4" />
+              </ToolbarButton>
 
               <ToolbarDivider />
 
@@ -800,6 +841,13 @@ export default function SectionForm() {
               >
                 <Italic className="h-4 w-4" />
               </ToolbarButton>
+              <ToolbarButton
+                onClick={() => setLink(editorNative)}
+                isActive={editorNative?.isActive('link')}
+                title="Add Link"
+              >
+                <LinkIcon className="h-4 w-4" />
+              </ToolbarButton>
 
               <ToolbarDivider />
 
@@ -895,7 +943,6 @@ export default function SectionForm() {
                   <div className="flex items-center space-x-1">
                     <ToolbarButton
                       onClick={() => handleImageAlignment('left')}
-                      
                       title="Align Left"
                     >
                       <AlignLeft className="h-4 w-4" />
