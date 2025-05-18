@@ -4,6 +4,13 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { Book, Globe, ChevronDown, Menu, X } from 'lucide-react';
 
+interface PortfolioLabels {
+  portfolio_label: string;
+  portfolio_label_native: string;
+  native_language_label: string;
+  native_language_label_native: string;
+}
+
 interface Page {
   id: string;
   title: string;
@@ -20,6 +27,12 @@ interface NavItem extends Page {
 
 export default function Navigation() {
   const [pages, setPages] = useState<NavItem[]>([]);
+  const [labels, setLabels] = useState<PortfolioLabels>({
+    portfolio_label: 'Portfolio',
+    portfolio_label_native: 'Պորտֆել',
+    native_language_label: 'Native',
+    native_language_label_native: 'հայերեն'
+  });
   const { user, signOut, language, setLanguage } = useAuth();
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -28,6 +41,7 @@ export default function Navigation() {
   useEffect(() => {
     console.log('Navigation: Initial mount, fetching pages...');
     fetchPages();
+    fetchLabels();
 
     const channel = supabase
       .channel('pages-changes')
@@ -58,6 +72,17 @@ export default function Navigation() {
     setIsMobileMenuOpen(false);
     setIsLanguageDropdownOpen(false);
   }, [location.pathname]);
+
+  const fetchLabels = async () => {
+    const { data } = await supabase
+      .from('portfolio_content')
+      .select('portfolio_label, portfolio_label_native, native_language_label, native_language_label_native')
+      .single();
+
+    if (data) {
+      setLabels(data);
+    }
+  };
 
   const fetchPages = async () => {
     console.log('Navigation: Fetching pages from Supabase...');
@@ -174,7 +199,7 @@ export default function Navigation() {
             <Link to="/" className="flex items-center space-x-2 text-gray-900 hover:text-blue-600 transition-colors duration-150 mr-8">
               <Book className="h-6 w-6 text-blue-600" />
               <span className="text-xl font-semibold">
-                {language === 'native' ? 'Պորտֆել' : 'Portfolio'}
+                {language === 'native' ? labels.portfolio_label_native : labels.portfolio_label}
               </span>
             </Link>
             
@@ -206,7 +231,9 @@ export default function Navigation() {
                 className="flex items-center space-x-2 px-3 py-2 text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-md transition-colors duration-150"
               >
                 <Globe className="h-5 w-5" />
-                <span className="capitalize">{language}</span>
+                <span className="capitalize">
+                  {language === 'native' ? labels.native_language_label_native : 'English'}
+                </span>
                 <ChevronDown className="h-4 w-4" />
               </button>
               
@@ -231,7 +258,7 @@ export default function Navigation() {
                           : 'text-gray-700 hover:bg-gray-50'
                       }`}
                     >
-                      Native
+                      {labels.native_language_label}
                     </button>
                   </div>
                 </div>
@@ -298,7 +325,7 @@ export default function Navigation() {
                 }`}
               >
                 <Globe className="h-5 w-5" />
-                <span>Native</span>
+                <span>{labels.native_language_label}</span>
               </button>
             </div>
           </div>
