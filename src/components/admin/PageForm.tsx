@@ -3,9 +3,10 @@ import { useNavigate, useParams, Link } from 'react-router-dom';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
+import Link2 from '@tiptap/extension-link';
 import { supabase } from '../../lib/supabase';
 import slugify from 'slugify';
-import { Plus, Edit, Trash2, ChevronRight, Bold, Italic, Code, Quote, Image as ImageIcon, Heading1, Heading2, Heading3, List, ListOrdered, Minus, RotateCcw, RotateCw, CodeSquare, AlignLeft, AlignCenter, AlignRight } from 'lucide-react';
+import { Plus, Edit, Trash2, ChevronRight, Bold, Italic, Code, Quote, Image as ImageIcon, Heading1, Heading2, Heading3, List, ListOrdered, Minus, RotateCcw, RotateCw, CodeSquare, AlignLeft, AlignCenter, AlignRight, Link as LinkIcon } from 'lucide-react';
 
 interface Page {
   id: string;
@@ -67,6 +68,22 @@ const ImageResizeButton: React.FC<{
   </button>
 );
 
+const setLink = (editor: any) => {
+  const previousUrl = editor.getAttributes('link').href;
+  const url = window.prompt('URL', previousUrl);
+
+  if (url === null) {
+    return;
+  }
+
+  if (url === '') {
+    editor.chain().focus().extendMarkRange('link').unsetLink().run();
+    return;
+  }
+
+  editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
+};
+
 export default function PageForm() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -101,6 +118,14 @@ export default function PageForm() {
       Image.configure({
         HTMLAttributes: {
           class: 'rounded-lg transition-all duration-200',
+        },
+      }),
+      Link2.configure({
+        openOnClick: false,
+        HTMLAttributes: {
+          class: 'text-blue-600 hover:text-blue-800 underline',
+          target: '_blank',
+          rel: 'noopener noreferrer',
         },
       }),
     ],
@@ -151,6 +176,14 @@ export default function PageForm() {
       Image.configure({
         HTMLAttributes: {
           class: 'rounded-lg transition-all duration-200',
+        },
+      }),
+      Link2.configure({
+        openOnClick: false,
+        HTMLAttributes: {
+          class: 'text-blue-600 hover:text-blue-800 underline',
+          target: '_blank',
+          rel: 'noopener noreferrer',
         },
       }),
     ],
@@ -471,6 +504,13 @@ export default function PageForm() {
               >
                 <Italic className="h-4 w-4" />
               </ToolbarButton>
+              <ToolbarButton
+                onClick={() => setLink(editor)}
+                isActive={editor?.isActive('link')}
+                title="Add Link"
+              >
+                <LinkIcon className="h-4 w-4" />
+              </ToolbarButton>
 
               <ToolbarDivider />
 
@@ -650,6 +690,13 @@ export default function PageForm() {
                 title="Italic"
               >
                 <Italic className="h-4 w-4" />
+              </ToolbarButton>
+              <ToolbarButton
+                onClick={() => setLink(editorNative)}
+                isActive={editorNative?.isActive('link')}
+                title="Add Link"
+              >
+                <LinkIcon className="h-4 w-4" />
               </ToolbarButton>
 
               <ToolbarDivider />
